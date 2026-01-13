@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Hotel/Pousada
+model Hotel {
+  id          String   @id @default(uuid())
+  nome        String
+  cnpj        String?  @unique
+  endereco    String
+  cidade      String
+  estado      String
+  cep         String?
+  telefone    String?
+  email       String?
+  descricao   String?  @db.Text
+  ativo       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  quartos     Quarto[]
+  reservas    Reserva[]
+
+  @@map("hoteis")
+}
+
+// Tipos de Quartos (Standard, Luxo, Suíte, etc)
+model TipoQuarto {
+  id              String   @id @default(uuid())
+  nome            String
+  descricao       String?  @db.Text
+  capacidadePessoas Int
+  precoBase       Decimal  @db.Decimal(10, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  quartos         Quarto[]
+
+  @@map("tipos_quartos")
+}
+
+// Quartos físicos de cada hotel
+model Quarto {
+  id            String   @id @default(uuid())
+  numero        String
+  hotelId       String
+  tipoQuartoId  String
+  andar         Int?
+  status        StatusQuarto @default(DISPONIVEL)
+  observacoes   String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  hotel         Hotel        @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  tipoQuarto    TipoQuarto   @relation(fields: [tipoQuartoId], references: [id])
+  reservas      Reserva[]
+
+  @@unique([hotelId, numero])
+  @@map("quartos")
+}
+
+// Clientes
+model Cliente {
+  id            String   @id @default(uuid())
+  nome          String
+  email         String   @unique
+  telefone      String
+  cpf           String?  @unique
+  dataNascimento DateTime?
+  endereco      String?
+  cidade        String?
+  estado        String?
+  cep           String?
+  observacoes   String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  reservas      Reserva[]
+
+  @@map("clientes")
+}
+
+// Reservas
+model Reserva {
+  id              String   @id @default(uuid())
+  clienteId       String
+  quartoId        String
+  hotelId         String
+  dataCheckIn     DateTime
+  dataCheckOut    DateTime
+  numeroPessoas   Int
+  valorTotal      Decimal  @db.Decimal(10, 2)
+  valorPago       Decimal? @db.Decimal(10, 2) @default(0)
+  status          StatusReserva @default(PENDENTE)
+  observacoes     String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  cliente         Cliente  @relation(fields: [clienteId], references: [id])
+  quarto          Quarto   @relation(fields: [quartoId], references: [id])
+  hotel           Hotel    @relation(fields: [hotelId], references: [id])
+
+  @@map("reservas")
+}
+
+// Enums
+enum StatusQuarto {
+  DISPONIVEL
+  OCUPADO
+  MANUTENCAO
+  INATIVO
+}
+
+enum StatusReserva {
+  PENDENTE
+  CONFIRMADA
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELADA
+}
