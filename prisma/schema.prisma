@@ -31,6 +31,7 @@ model Hotel {
 
   quartos     Quarto[]
   reservas    Reserva[]
+  usuarios    Usuario[]
 
   @@map("hoteis")
 }
@@ -114,6 +115,36 @@ model Reserva {
   @@map("reservas")
 }
 
+// Usuários do sistema (recepcionistas, gerentes)
+model Usuario {
+  id          String   @id @default(uuid())
+  nome        String
+  email       String   @unique
+  senha       String
+  hotelId     String?
+  role        RoleUsuario @default(RECEPCIONISTA)
+  ativo     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hotel     Hotel?   @relation(fields: [hotelId], references: [id])
+  tokensVerificacao TokenVerificacao[]
+
+  @@map("usuarios")
+}
+
+model TokenVerificacao {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  usuarioId  String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("tokens_verificacao")
+}
+
 // Enums
 enum StatusQuarto {
   DISPONIVEL
@@ -128,4 +159,10 @@ enum StatusReserva {
   CHECKED_IN
   CHECKED_OUT
   CANCELADA
+}
+
+enum RoleUsuario {
+  ADMIN
+  GERENTE
+  RECEPCIONISTA
 }
