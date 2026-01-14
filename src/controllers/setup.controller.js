@@ -32,10 +32,8 @@ async function criarDadosIniciais(req, res) {
                 id: '1',
                 nome: 'Standard',
                 descricao: 'Quarto confortável com cama de casal',
-                capacidade: 2,
                 capacidadePessoas: 2,
-                precoDiaria: 150.00,
-                hotelId: hotel.id
+                precoBase: 150.00
             }
         });
 
@@ -46,10 +44,8 @@ async function criarDadosIniciais(req, res) {
                 id: '2',
                 nome: 'Luxo',
                 descricao: 'Quarto luxuoso com vista para o mar',
-                capacidade: 3,
                 capacidadePessoas: 3,
-                precoDiaria: 350.00,
-                hotelId: hotel.id
+                precoBase: 350.00
             }
         });
 
