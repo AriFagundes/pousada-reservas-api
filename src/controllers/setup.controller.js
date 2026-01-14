@@ -15,12 +15,12 @@ async function criarDadosIniciais(req, res) {
             update: {},
             create: {
                 id: '1',
-                nome: 'Pousada Exemplo',
+                nome: 'Solare Inn',
                 endereco: 'Rua das Flores, 123',
                 cidade: 'São Paulo',
                 estado: 'SP',
                 telefone: '(11) 98765-4321',
-                email: 'contato@pousadaexemplo.com.br'
+                email: 'contato@solarinn.com.br'
             }
         });
 
