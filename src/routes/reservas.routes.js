@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const reservasController = require("../controllers/reservas.controller");
 
+// Novo: Endpoint público para criar reserva via formulário
+router.post("/criar-reserva", reservasController.criarViaFormulario);
+
 router.post("/", reservasController.criar);
 router.get("/", reservasController.listar);
 router.get("/:id", reservasController.buscarPorId);

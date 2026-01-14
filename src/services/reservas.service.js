@@ -1,5 +1,13 @@
 const prisma = require("../config/prisma");
 
+// Calcular dias entre datas
+function calcularDias(dataCheckIn, dataCheckOut) {
+  const inicio = new Date(dataCheckIn);
+  const fim = new Date(dataCheckOut);
+  const diferenca = fim - inicio;
+  return Math.ceil(diferenca / (1000 * 60 * 60 * 24));
+}
+
 async function criar(dados) {
     const { clienteId, quartoId, hotelId, dataCheckIn, dataCheckOut, numeroPessoas, observacoes } = dados;
 
