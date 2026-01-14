@@ -9,6 +9,7 @@ router.post("/", reservasController.criar);
 router.get("/", reservasController.listar);
 router.get("/:id", reservasController.buscarPorId);
 router.put("/:id", reservasController.atualizar);
+router.delete("/:id", reservasController.deletar);
 router.patch("/:id/cancelar", reservasController.cancelar);
 router.patch("/:id/confirmar", reservasController.confirmar);
 router.patch("/:id/check-in", reservasController.checkIn);

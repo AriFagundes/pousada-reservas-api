@@ -1,5 +1,6 @@
 const reservasService = require("../services/reservas.service");
 const prisma = require("../config/prisma");
+const { enviarEmailConfirmacaoReserva, enviarEmailNotificacaoHotel } = require("../services/email.service");
 
 // Calcular dias entre datas
 function calcularDias(dataCheckIn, dataCheckOut) {
@@ -119,7 +120,8 @@ async function criarViaFormulario(req, res) {
                 dataCheckOut: fim,
                 numeroPessoas,
                 valorTotal: parseFloat(valorTotal.toFixed(2)),
-                status: 'PENDENTE'
+                status: 'PENDENTE',
+                dias
             },
             include: {
                 cliente: true,
@@ -130,6 +132,15 @@ async function criarViaFormulario(req, res) {
                     }
                 }
             }
+        });
+
+        // Enviar emails (não bloqueia a resposta)
+        enviarEmailConfirmacaoReserva(reserva, reserva.cliente, reserva.quarto, reserva.quarto.hotel).catch(err => {
+            console.error('Erro ao enviar email de confirmação:', err);
+        });
+        
+        enviarEmailNotificacaoHotel(reserva, reserva.cliente, reserva.quarto, reserva.quarto.hotel).catch(err => {
+            console.error('Erro ao enviar email para hotel:', err);
         });
 
         return res.status(201).json({
@@ -231,6 +242,15 @@ async function checkOut(req, res) {
     }
 }
 
+async function deletar(req, res) {
+    try {
+        await reservasService.deletar(req.params.id);
+        return res.status(200).json({ mensagem: "Reserva excluída com sucesso" });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+}
+
 module.exports = {
     criar,
     criarViaFormulario,
@@ -240,5 +260,6 @@ module.exports = {
     cancelar,
     confirmar,
     checkIn,
-    checkOut
+    checkOut,
+    deletar
 };

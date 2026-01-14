@@ -301,6 +301,22 @@ async function checkOut(id) {
     return reservaAtualizada;
 }
 
+async function deletar(id) {
+    const reserva = await prisma.reserva.findUnique({
+        where: { id }
+    });
+
+    if (!reserva) {
+        throw new Error("Reserva não encontrada");
+    }
+
+    await prisma.reserva.delete({
+        where: { id }
+    });
+
+    return { mensagem: "Reserva excluída com sucesso" };
+}
+
 module.exports = {
     criar,
     listar,
@@ -309,5 +325,6 @@ module.exports = {
     cancelar,
     confirmar,
     checkIn,
-    checkOut
+    checkOut,
+    deletar
 };
