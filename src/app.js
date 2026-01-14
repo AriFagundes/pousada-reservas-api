@@ -16,6 +16,10 @@ const app = express();
 const corsOptions = {
     origin: function (origin, callback) {
         const allowedOrigins = [
+            'https://greatic.io',
+            'http://greatic.io',
+            'https://www.greatic.io',
+            'http://www.greatic.io',
             'https://clientes.greatic.io',
             'http://clientes.greatic.io',
             'http://localhost:3000',
