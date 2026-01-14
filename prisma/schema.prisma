@@ -29,9 +29,10 @@ model Hotel {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  quartos     Quarto[]
-  reservas    Reserva[]
-  usuarios    Usuario[]
+  quartos           Quarto[]
+  reservas          Reserva[]
+  usuarios          Usuario[]
+  configuracao      ConfiguracaoPousada?
 
   @@map("hoteis")
 }
@@ -105,12 +106,15 @@ model Reserva {
   valorPago       Decimal? @db.Decimal(10, 2) @default(0)
   status          StatusReserva @default(PENDENTE)
   observacoes     String?  @db.Text
+  dataConfirmacao DateTime?
+  dataPrazoConfirmacao DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   cliente         Cliente  @relation(fields: [clienteId], references: [id])
   quarto          Quarto   @relation(fields: [quartoId], references: [id])
   hotel           Hotel    @relation(fields: [hotelId], references: [id])
+  auditoria       AuditoriaReserva[]
 
   @@map("reservas")
 }
@@ -145,6 +149,45 @@ model TokenVerificacao {
   @@map("tokens_verificacao")
 }
 
+// Auditoria de Reservas
+model AuditoriaReserva {
+  id              String   @id @default(uuid())
+  reservaId       String
+  usuarioId       String?
+  statusAnterior  StatusReserva
+  statusNovo      StatusReserva
+  descricao       String?  @db.Text
+  ipAdress        String?
+  userAgent       String?
+  createdAt       DateTime @default(now())
+
+  reserva         Reserva  @relation(fields: [reservaId], references: [id], onDelete: Cascade)
+
+  @@map("auditoria_reservas")
+}
+
+// Configurações da Pousada
+model ConfiguracaoPousada {
+  id                          String   @id @default(uuid())
+  hotelId                     String   @unique
+  horaCheckIn                 String   @default("14:00")
+  horaCheckOut                String   @default("12:00")
+  regras                      String?  @db.Text
+  prazoDiasConfirmacaoReserva Int      @default(3)
+  
+  // Templates de mensagens WhatsApp
+  templateConfirmacao         String?  @db.Text
+  templateCancelamento        String?  @db.Text
+  templateLembrete            String?  @db.Text
+  
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  hotel                       Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@map("configuracoes_pousadas")
+}
+
 // Enums
 enum StatusQuarto {
   DISPONIVEL
@@ -156,9 +199,9 @@ enum StatusQuarto {
 enum StatusReserva {
   PENDENTE
   CONFIRMADA
-  CHECKED_IN
-  CHECKED_OUT
   CANCELADA
+  NO_SHOW
+  FINALIZADA
 }
 
 enum RoleUsuario {

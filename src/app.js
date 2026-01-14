@@ -9,6 +9,8 @@ const clienteRoutes = require("./routes/cliente.routes");
 const reservasRoutes = require("./routes/reservas.routes");
 const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
+const configuracaoRoutes = require("./routes/configuracao.routes");
 
 const app = express();
 
@@ -52,6 +54,8 @@ app.use("/clientes", clienteRoutes);
 app.use("/reservas", reservasRoutes);
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
+app.use("/dashboard", dashboardRoutes);
+app.use("/configuracoes", configuracaoRoutes);
 
 app.get("/", (req, res) => {
     res.send("API de Reservas rodando 🚀");

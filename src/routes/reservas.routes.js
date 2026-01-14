@@ -12,7 +12,9 @@ router.put("/:id", reservasController.atualizar);
 router.delete("/:id", reservasController.deletar);
 router.patch("/:id/cancelar", reservasController.cancelar);
 router.patch("/:id/confirmar", reservasController.confirmar);
+router.patch("/:id/no-show", reservasController.marcarNoShow);
 router.patch("/:id/check-in", reservasController.checkIn);
 router.patch("/:id/check-out", reservasController.checkOut);
 
 module.exports = router;
+

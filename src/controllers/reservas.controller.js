@@ -1,4 +1,5 @@
 const reservasService = require("../services/reservas.service");
+const configuracaoService = require("../services/configuracao.service");
 const prisma = require("../config/prisma");
 const { enviarEmailConfirmacaoReserva, enviarEmailNotificacaoHotel } = require("../services/email.service");
 
@@ -8,6 +9,23 @@ function calcularDias(dataCheckIn, dataCheckOut) {
   const fim = new Date(dataCheckOut);
   const diferenca = fim - inicio;
   return Math.ceil(diferenca / (1000 * 60 * 60 * 24));
+}
+
+// Registrar auditoria
+async function registrarAuditoria(reservaId, statusAnterior, statusNovo, descricao, usuarioId = null) {
+  try {
+    await prisma.auditoriaReserva.create({
+      data: {
+        reservaId,
+        statusAnterior,
+        statusNovo,
+        descricao,
+        usuarioId
+      }
+    });
+  } catch (erro) {
+    console.error("Erro ao registrar auditoria:", erro);
+  }
 }
 
 // ===== NOVO: Criar reserva via formulário externo (sem cliente logado) =====
@@ -208,18 +226,161 @@ async function atualizar(req, res) {
 
 async function cancelar(req, res) {
     try {
-        const reserva = await reservasService.cancelar(req.params.id);
-        return res.status(200).json(reserva);
+        const reservaId = req.params.id;
+        const { usuarioId, motivo } = req.body;
+
+        // Buscar reserva
+        const reserva = await prisma.reserva.findUnique({
+            where: { id: reservaId },
+            include: {
+                cliente: true,
+                quarto: { include: { tipoQuarto: true } },
+                hotel: true
+            }
+        });
+
+        if (!reserva) {
+            return res.status(404).json({ error: "Reserva não encontrada" });
+        }
+
+        if (reserva.status === 'CANCELADA' || reserva.status === 'FINALIZADA') {
+            return res.status(400).json({ error: `Reserva não pode ser cancelada. Status atual: ${reserva.status}` });
+        }
+
+        const statusAnterior = reserva.status;
+
+        // Atualizar reserva
+        const reservaAtualizada = await prisma.reserva.update({
+            where: { id: reservaId },
+            data: { status: 'CANCELADA' },
+            include: {
+                cliente: true,
+                quarto: { include: { tipoQuarto: true } },
+                hotel: true
+            }
+        });
+
+        // Registrar auditoria
+        await registrarAuditoria(
+            reservaId,
+            statusAnterior,
+            'CANCELADA',
+            `Cancelada. Motivo: ${motivo || 'Não informado'}`,
+            usuarioId
+        );
+
+        // Buscar template e preparar mensagem
+        const config = await configuracaoService.obterConfiguracao(reserva.hotelId);
+        const dataFormatada = new Date(reserva.dataCheckIn).toLocaleDateString('pt-BR');
+        
+        const variaveis = {
+            nome: reserva.cliente.nome,
+            data: dataFormatada,
+            pessoas: reserva.numeroPessoas,
+            valor: reserva.valorTotal.toFixed(2),
+            regras: config.regras || '',
+            horario_checkin: config.horaCheckIn
+        };
+
+        const mensagem = configuracaoService.processarTemplate(
+            config.templateCancelamento,
+            variaveis
+        );
+
+        const telefone = reserva.cliente.telefone.replace(/\D/g, '');
+        const linkWhatsApp = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
+
+        return res.status(200).json({
+            reserva: reservaAtualizada,
+            mensagem: {
+                texto: mensagem,
+                linkWhatsApp
+            }
+        });
     } catch (error) {
+        console.error("Erro ao cancelar reserva:", error);
         return res.status(400).json({ error: error.message });
     }
 }
 
 async function confirmar(req, res) {
     try {
-        const reserva = await reservasService.confirmar(req.params.id);
-        return res.status(200).json(reserva);
+        const reservaId = req.params.id;
+        const { usuarioId } = req.body;
+
+        // Buscar reserva com dados relacionados
+        const reserva = await prisma.reserva.findUnique({
+            where: { id: reservaId },
+            include: {
+                cliente: true,
+                quarto: { include: { tipoQuarto: true } },
+                hotel: true
+            }
+        });
+
+        if (!reserva) {
+            return res.status(404).json({ error: "Reserva não encontrada" });
+        }
+
+        if (reserva.status !== 'PENDENTE') {
+            return res.status(400).json({ error: `Apenas reservas PENDENTES podem ser confirmadas. Status atual: ${reserva.status}` });
+        }
+
+        // Atualizar reserva
+        const reservaAtualizada = await prisma.reserva.update({
+            where: { id: reservaId },
+            data: {
+                status: 'CONFIRMADA',
+                dataConfirmacao: new Date()
+            },
+            include: {
+                cliente: true,
+                quarto: { include: { tipoQuarto: true } },
+                hotel: true
+            }
+        });
+
+        // Registrar auditoria
+        await registrarAuditoria(
+            reservaId,
+            'PENDENTE',
+            'CONFIRMADA',
+            'Reserva confirmada manualmente',
+            usuarioId
+        );
+
+        // Buscar template e enviar mensagem WhatsApp
+        const config = await configuracaoService.obterConfiguracao(reserva.hotelId);
+        const dataFormatada = new Date(reserva.dataCheckIn).toLocaleDateString('pt-BR');
+        
+        const variaveis = {
+            nome: reserva.cliente.nome,
+            data: dataFormatada,
+            pessoas: reserva.numeroPessoas,
+            valor: reserva.valorTotal.toFixed(2),
+            regras: config.regras || 'Siga as regras do estabelecimento',
+            horario_checkin: config.horaCheckIn
+        };
+
+        const mensagem = configuracaoService.processarTemplate(
+            config.templateConfirmacao,
+            variaveis
+        );
+
+        // Gerar link WhatsApp (sem envio automático, apenas link)
+        const telefone = reserva.cliente.telefone.replace(/\D/g, '');
+        const linkWhatsApp = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
+
+        res.status(200).json({
+            reserva: reservaAtualizada,
+            mensagem: {
+                texto: mensagem,
+                linkWhatsApp
+            }
+        });
+
     } catch (error) {
+        console.error("Erro ao confirmar reserva:", error);
         return res.status(400).json({ error: error.message });
     }
 }
@@ -251,6 +412,49 @@ async function deletar(req, res) {
     }
 }
 
+// NOVO: Marcar como NO_SHOW
+async function marcarNoShow(req, res) {
+    try {
+        const reservaId = req.params.id;
+        const { usuarioId } = req.body;
+
+        const reserva = await prisma.reserva.findUnique({
+            where: { id: reservaId }
+        });
+
+        if (!reserva) {
+            return res.status(404).json({ error: "Reserva não encontrada" });
+        }
+
+        if (reserva.status !== 'CONFIRMADA') {
+            return res.status(400).json({ error: "Apenas reservas CONFIRMADAS podem ser marcadas como NO_SHOW" });
+        }
+
+        const reservaAtualizada = await prisma.reserva.update({
+            where: { id: reservaId },
+            data: { status: 'NO_SHOW' },
+            include: {
+                cliente: true,
+                quarto: { include: { tipoQuarto: true } },
+                hotel: true
+            }
+        });
+
+        await registrarAuditoria(
+            reservaId,
+            'CONFIRMADA',
+            'NO_SHOW',
+            'Hóspede não compareceu',
+            usuarioId
+        );
+
+        res.json(reservaAtualizada);
+    } catch (error) {
+        console.error("Erro ao marcar NO_SHOW:", error);
+        return res.status(400).json({ error: error.message });
+    }
+}
+
 module.exports = {
     criar,
     criarViaFormulario,
@@ -261,5 +465,6 @@ module.exports = {
     confirmar,
     checkIn,
     checkOut,
-    deletar
+    deletar,
+    marcarNoShow
 };
