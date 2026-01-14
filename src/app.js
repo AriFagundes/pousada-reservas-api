@@ -11,15 +11,27 @@ const authRoutes = require("./routes/auth.routes");
 
 const app = express();
 
-// Configuração de CORS para aceitar requisições do frontend
+// Configuração de CORS mais robusta
 const corsOptions = {
-    origin: [
-        'https://clientes.greatic.io',
-        'http://clientes.greatic.io',
-        'http://localhost:3000',
-        'http://localhost:5173' // Vite dev server
-    ],
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            'https://clientes.greatic.io',
+            'http://clientes.greatic.io',
+            'http://localhost:3000',
+            'http://localhost:5173',
+            'http://127.0.0.1:5173'
+        ];
+
+        // Permite requisições sem origin (como mobile apps ou requests de ferramentas)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     optionsSuccessStatus: 200
 };
 
