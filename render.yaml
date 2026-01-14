@@ -12,6 +12,10 @@ services:
         fromDatabase:
           name: pousada-reservas-db
           property: connectionString
+      - key: FRONTEND_URL
+        value: https://clientes.greatic.io
+      - key: JWT_SECRET
+        sync: false
 
 databases:
   - name: pousada-reservas-db
