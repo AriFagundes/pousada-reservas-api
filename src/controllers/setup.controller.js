@@ -33,6 +33,7 @@ async function criarDadosIniciais(req, res) {
                 nome: 'Standard',
                 descricao: 'Quarto confortável com cama de casal',
                 capacidade: 2,
+                capacidadePessoas: 2,
                 precoDiaria: 150.00,
                 hotelId: hotel.id
             }
@@ -46,6 +47,7 @@ async function criarDadosIniciais(req, res) {
                 nome: 'Luxo',
                 descricao: 'Quarto luxuoso com vista para o mar',
                 capacidade: 3,
+                capacidadePessoas: 3,
                 precoDiaria: 350.00,
                 hotelId: hotel.id
             }

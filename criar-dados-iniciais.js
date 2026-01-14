@@ -22,6 +22,9 @@ async function criarDadosIniciais() {
   } catch (error) {
     if (error.response) {
       console.error('❌ Erro:', error.response.data.message);
+      if (error.response.data.error) {
+        console.error('Detalhes:', error.response.data.error);
+      }
     } else {
       console.error('❌ Erro de conexão:', error.message);
     }
