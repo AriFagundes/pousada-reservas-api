@@ -53,10 +53,14 @@ async function criarDadosIniciais(req, res) {
         const quartos = [];
         for (let i = 101; i <= 105; i++) {
             const quarto = await prisma.quarto.upsert({
-                where: { id: `${i}` },
+                where: { 
+                    hotelId_numero: {
+                        hotelId: hotel.id,
+                        numero: i.toString()
+                    }
+                },
                 update: {},
                 create: {
-                    id: `${i}`,
                     numero: i.toString(),
                     andar: 1,
                     status: 'DISPONIVEL',
