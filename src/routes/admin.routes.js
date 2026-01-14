@@ -9,5 +9,6 @@ const setupController = require('../controllers/setup.controller');
 router.post('/limpar-dados-teste', adminController.limparDadosTeste);
 router.post('/deletar-usuario', adminController.deletarUsuario);
 router.post('/criar-dados-iniciais', setupController.criarDadosIniciais);
+router.post('/criar-solar-de-penha', setupController.criarSolarDePenha);
 
 module.exports = router;
