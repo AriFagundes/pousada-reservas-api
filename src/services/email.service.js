@@ -2,8 +2,11 @@ const { Resend } = require('resend');
 
 const resend = new Resend('re_eBHz9hXZ_3STfk2bQroip7J3Q6WDkfhhq');
 
+// URL do frontend - muda conforme o ambiente
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
 const enviarEmailVerificacao = async (email, nome, token) => {
-  const linkVerificacao = `http://localhost:5173/verificar-email?token=${token}`;
+  const linkVerificacao = `${FRONTEND_URL}/verificar-email?token=${token}`;
   
   try {
     const data = await resend.emails.send({
@@ -133,11 +136,13 @@ const enviarEmailVerificacao = async (email, nome, token) => {
 };
 
 const enviarEmailBoasVindas = async (email, nome) => {
+  const linkDashboard = `${FRONTEND_URL}/dashboard`;
+  
   try {
     const data = await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: email,
-      subject: '🎉 Bem-vindo ao Sistema de Reservas!',
+      subject: '✅ Bem-vindo ao Sistema de Reservas!',
       html: `
         <!DOCTYPE html>
         <html>
@@ -250,7 +255,7 @@ const enviarEmailBoasVindas = async (email, nome) => {
               </div>
 
               <center>
-                <a href="http://localhost:5173" class="button">
+                <a href="${linkDashboard}" class="button">
                   🚀 Acessar Sistema
                 </a>
               </center>

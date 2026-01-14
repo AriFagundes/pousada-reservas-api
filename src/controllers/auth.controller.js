@@ -12,12 +12,15 @@ async function login(req, res) {
 
 async function register(req, res) {
     try {
+        console.log('📝 Iniciando registro:', req.body.email);
         const usuario = await authService.register(req.body);
+        console.log('✅ Usuário criado e email enviado:', req.body.email);
         res.status(201).json({ 
             message: 'Usuário criado com sucesso! Verifique seu email para ativar a conta.',
             usuario 
         });
     } catch (error) {
+        console.error('❌ Erro no registro:', error.message);
         res.status(400).json({ message: error.message });
     }
 }
