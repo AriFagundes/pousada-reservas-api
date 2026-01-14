@@ -8,6 +8,7 @@ const quartoRoutes = require("./routes/quarto.routes");
 const clienteRoutes = require("./routes/cliente.routes");
 const reservasRoutes = require("./routes/reservas.routes");
 const authRoutes = require("./routes/auth.routes");
+const adminRoutes = require("./routes/admin.routes");
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use("/quartos", quartoRoutes);
 app.use("/clientes", clienteRoutes);
 app.use("/reservas", reservasRoutes);
 app.use("/auth", authRoutes);
+app.use("/admin", adminRoutes);
 
 app.get("/", (req, res) => {
     res.send("API de Reservas rodando 🚀");
