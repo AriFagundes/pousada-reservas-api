@@ -7,7 +7,10 @@ const crypto = require('crypto');
 const JWT_SECRET = process.env.JWT_SECRET || 'seu-secret-key-super-seguro-mude-isso-em-producao';
 
 async function login(email, senha) {
+    console.log('🔍 [AUTH] Tentativa de login:', email);
+    
     if (!email || !senha) {
+        console.log('❌ [AUTH] Email ou senha ausentes');
         throw new Error("Email e senha são obrigatórios");
     }
 
@@ -18,17 +21,29 @@ async function login(email, senha) {
     });
 
     if (!usuario) {
+        console.log('❌ [AUTH] Usuário não encontrado:', email);
         throw new Error("Credenciais inválidas");
     }
 
+    console.log('✅ [AUTH] Usuário encontrado:', {
+        email: usuario.email,
+        ativo: usuario.ativo,
+        hotelId: usuario.hotelId
+    });
+
     // Verifica se a conta está ativa
     if (!usuario.ativo) {
+        console.log('❌ [AUTH] Conta não verificada:', email);
         throw new Error("Conta não verificada. Verifique seu email.");
     }
 
     // Compara senha com hash armazenado
+    console.log('🔐 [AUTH] Comparando senha...');
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
+    console.log('🔐 [AUTH] Resultado comparação:', senhaValida);
+    
     if (!senhaValida) {
+        console.log('❌ [AUTH] Senha inválida para:', email);
         throw new Error("Credenciais inválidas");
     }
 
