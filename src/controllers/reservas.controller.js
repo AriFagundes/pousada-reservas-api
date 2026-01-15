@@ -138,8 +138,7 @@ async function criarViaFormulario(req, res) {
                 dataCheckOut: fim,
                 numeroPessoas,
                 valorTotal: parseFloat(valorTotal.toFixed(2)),
-                status: 'PENDENTE',
-                dias
+                status: 'PENDENTE'
             },
             include: {
                 cliente: true,
