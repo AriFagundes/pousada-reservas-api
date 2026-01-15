@@ -35,9 +35,14 @@ async function login(email, senha) {
     // Retorna dados do usuário (sem a senha)
     const { senha: _, ...usuarioSemSenha } = usuario;
     
-    // Gera JWT token
+    // Gera JWT token com hotelId
     const token = jwt.sign(
-        { id: usuario.id, email: usuario.email, role: usuario.role },
+        { 
+            id: usuario.id, 
+            email: usuario.email, 
+            role: usuario.role,
+            hotelId: usuario.hotelId 
+        },
         JWT_SECRET,
         { expiresIn: '7d' }
     );
