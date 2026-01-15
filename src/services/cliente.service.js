@@ -148,7 +148,7 @@ async function deletar(id) {
         where: {
             clienteId: id,
             status: {
-                in: ['PENDENTE', 'CONFIRMADA', 'CHECKED_IN']
+                in: ['PENDENTE', 'CONFIRMADA']
             }
         }
     });

@@ -93,7 +93,7 @@ async function criarViaFormulario(req, res) {
         const reservasConflitantes = await prisma.reserva.findMany({
             where: {
                 quartoId: { in: quartos.map(q => q.id) },
-                status: { in: ['CONFIRMADA', 'CHECKED_IN', 'PENDENTE'] },
+                status: { in: ['CONFIRMADA', 'PENDENTE'] },
                 AND: [
                     { dataCheckIn: { lt: fim } },
                     { dataCheckOut: { gt: inicio } }

@@ -57,7 +57,7 @@ async function criar(dados) {
         where: {
             quartoId,
             status: {
-                in: ['CONFIRMADA', 'CHECKED_IN']
+                in: ['CONFIRMADA']
             },
             OR: [
                 {
@@ -258,7 +258,7 @@ async function checkIn(id) {
     const [reservaAtualizada] = await prisma.$transaction([
         prisma.reserva.update({
             where: { id },
-            data: { status: 'CHECKED_IN' },
+            data: { status: 'CONFIRMADA' },
             include: {
                 cliente: true,
                 quarto: true,
@@ -277,8 +277,8 @@ async function checkIn(id) {
 async function checkOut(id) {
     const reserva = await buscarPorId(id);
 
-    if (reserva.status !== 'CHECKED_IN') {
-        throw new Error("Apenas reservas com check-in podem fazer check-out");
+    if (reserva.status !== 'CONFIRMADA') {
+        throw new Error("Apenas reservas confirmadas podem fazer check-out");
     }
 
     // Atualiza status da reserva e do quarto

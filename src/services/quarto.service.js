@@ -62,7 +62,7 @@ async function buscarPorId(id) {
             reservas: {
                 where: {
                     status: {
-                        in: ['CONFIRMADA', 'CHECKED_IN']
+                        in: ['CONFIRMADA']
                     }
                 },
                 orderBy: { dataCheckIn: 'desc' }
@@ -106,7 +106,7 @@ async function verificarDisponibilidade(hotelId, dataCheckIn, dataCheckOut, tipo
             reservas: {
                 where: {
                     status: {
-                        in: ['CONFIRMADA', 'CHECKED_IN']
+                        in: ['CONFIRMADA']
                     },
                     OR: [
                         {
